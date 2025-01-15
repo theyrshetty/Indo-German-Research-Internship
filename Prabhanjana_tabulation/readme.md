@@ -1,6 +1,6 @@
 # Parliament Document Processing System 
 
-## textextraction.py
+## text-extraction.py
 Python script to convert PDF documents to text while preserving formatting information.
 
 ### Functions:
