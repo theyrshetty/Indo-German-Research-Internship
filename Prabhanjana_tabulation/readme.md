@@ -47,6 +47,7 @@ numpy==1.24.3
 pandas==2.0.3
 ```
 
+
 ## Running the System
 
 1. Install required packages:
@@ -60,23 +61,19 @@ tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Path to Tess
 poppler_path = r'C:\Program Files\poppler-24.07.0\Library\bin'    # Path to Poppler
 ```
 
-3. Set input/output files:
+3. Set input files:
    - In textextraction.py:
      ```python
-     # Change input PDF path (around line 120)
+     # Change input PDF path (in main function)
      pdf_path = "16-III-01.12.2014.pdf"  # Update with your PDF name
-     
-     # Change output text file name (in process_pdf function parameters)
-     def process_pdf(pdf_path, output_file="16-III-01.12.2014.txt"):
+     # Output .txt file is automatically generated with same name as PDF
      ```
    
    - In tabulation.py:
      ```python
      # Change input text file (in main function)
      processor.process_file('16-III-01.12.2014.txt')  # Update with your text file name
-     
      # Output CSV name is automatically generated from input text filename
-     # e.g., '16-III-01.12.2014.txt' becomes '16-III-01.12.2014.csv'
      ```
 
 4. Run in sequence:
@@ -84,6 +81,8 @@ poppler_path = r'C:\Program Files\poppler-24.07.0\Library\bin'    # Path to Popp
 python textextraction.py  # Creates .txt file
 python tabulation.py     # Creates .csv file
 ```
+
+
 
 ## Configuration Options
 
@@ -95,8 +94,9 @@ python tabulation.py     # Creates .csv file
 ### tabulation.py
 - Speaker validation: Modify `non_speaker_words <= 3`
 - Speaker formatting: Update `is_speaker_formatted()` conditions
-
+- 
 ## File Path Requirements
 - All files (PDF, generated text file, and final CSV) should be in the same directory as the Python scripts
-- Use consistent file naming across both scripts
-- For different input files, update the file names in both scripts accordingly
+- File names are handled automatically:
+  - textextraction.py: converts 'filename.pdf' to 'filename.txt'
+  - tabulation.py: converts 'filename.txt' to 'filename.csv'
