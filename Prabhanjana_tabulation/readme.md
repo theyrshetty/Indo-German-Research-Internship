@@ -4,11 +4,15 @@
 Python script to convert PDF documents to text while preserving formatting information.
 
 ### Functions:
-- `is_hindi_text()`: Detects Hindi characters in text
-- `calculate_white_ratio()`: Calculates ratio of white pixels in image region
-- `apply_erosion()`: Applies erosion to detect bold text
-- `process_page_with_selective_erosion()`: Processes each page with bold detection
-- `process_pdf()`: Main function to process entire PDF
+- `is_speaker_formatted()`: Checks if a word has speaker-specific formatting (bold or capitalized).
+- `validate_speaker()`: Validates and extracts the speaker's name from the text.
+- `process_line()`: Processes each line of text based on the current processing mode.
+- `process_init_mode()`: Handles lines in the initial mode, looking for session markers.
+- `process_page_mode()`: Extracts page numbers and metadata from the lines.
+- `process_potential_speaker_mode()`: Manages multi-line speaker names and validates potential speaker lines.
+- `save_current_record()`: Saves the current speaker and speech data to the records.
+- `process_file()`: Processes the entire input file and generates a structured CSV output.
+
 
 ### Features:
 - Uses erosion technique for bold text detection
