@@ -11,7 +11,7 @@ class ProcessingMode(Enum):
     INIT = "INIT"
     PAGE = "PAGE"
     SPEAKER_SCAN = "SPEAKER_SCAN"
-    POTENTIAL_SPEAKER = "POTENTIAL_SPEAKER"  # New state for multi-line speakers
+    POTENTIAL_SPEAKER = "POTENTIAL_SPEAKER"  
     SPEECH = "SPEECH"
 
 class ParliamentProcessor:
