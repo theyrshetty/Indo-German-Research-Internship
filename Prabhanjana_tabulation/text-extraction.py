@@ -98,7 +98,7 @@ def process_page_with_selective_erosion(page_image, config="--psm 6 --oem 3 -l e
         if is_hindi_text(text):
             eroded_region = apply_erosion(word_region)
             white_ratio = calculate_white_ratio(eroded_region)
-            bold_threshold = 0.915
+            bold_threshold = 0.915 #adjust this threshold as per the boldness
             if white_ratio < bold_threshold:
                 text = f"**{text}**"
         
