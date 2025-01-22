@@ -3,7 +3,7 @@ import csv
 import pandas as pd
 import os
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 import logging
 
 
@@ -11,11 +11,14 @@ class ProcessingMode(Enum):
     INIT = "INIT"
     PAGE = "PAGE"
     SPEAKER_SCAN = "SPEAKER_SCAN"
-    POTENTIAL_SPEAKER = "POTENTIAL_SPEAKER"  
+    POTENTIAL_SPEAKER = "POTENTIAL_SPEAKER"  # New state for multi-line speakers
     SPEECH = "SPEECH"
 
 class ParliamentProcessor:
-    def __init__(self):
+    def __init__(self, delimiters: Set[str] = {';', ':'}):
+        # Configurable delimiters
+        self.delimiters = delimiters
+        
         # State tracking
         self.mode = ProcessingMode.INIT
         self.current_page = ""
@@ -84,7 +87,6 @@ class ParliamentProcessor:
                 self.mode = ProcessingMode.PAGE  # Stay in PAGE mode to capture metadata
                 return True
 
-
         # Capture metadata: only take the first line after the page marker
         if self.current_page and not self.current_metadata:
             self.current_metadata = line  # Capture the first line as metadata
@@ -93,6 +95,17 @@ class ParliamentProcessor:
         
         return False
 
+    def has_delimiter(self, text: str) -> bool:
+        """Check if text contains any of the configured delimiters."""
+        return any(delimiter in text for delimiter in self.delimiters)
+
+    def split_at_delimiter(self, text: str) -> tuple[str, str]:
+        """Split text at the first occurring delimiter."""
+        for delimiter in self.delimiters:
+            if delimiter in text:
+                parts = text.split(delimiter, 1)
+                return parts[0].strip(), parts[1].strip()
+        return text.strip(), ""
 
     def is_potential_speaker_start(self, line: str) -> bool:
         """Check if line might be the start of a speaker section."""
@@ -109,12 +122,11 @@ class ParliamentProcessor:
         if not text:
             return None
             
-        # Check for separator
-        if ':' not in text and ';' not in text:
+        # Check for any configured delimiter
+        if not self.has_delimiter(text):
             return None
             
-        separator = ':' if ':' in text else ';'
-        speaker_part = text.split(separator)[0].strip()
+        speaker_part, _ = self.split_at_delimiter(text)
         
         # Validate speaker formatting
         words = speaker_part.split()
@@ -129,8 +141,8 @@ class ParliamentProcessor:
         """Process line in POTENTIAL_SPEAKER mode."""
         self.potential_speaker_lines.append(line)
         
-        # If we find a separator in this line
-        if ':' in line or ';' in line:
+        # If we find a delimiter in this line
+        if self.has_delimiter(line):
             full_text = ' '.join(self.potential_speaker_lines)
             speaker = self.validate_speaker(full_text)
             
@@ -139,9 +151,8 @@ class ParliamentProcessor:
                     self.save_current_record()
                 self.current_speaker = speaker
                 
-                # Extract speech part after separator
-                separator = ':' if ':' in full_text else ';'
-                speech_start = full_text[full_text.find(separator)+1:].strip()
+                # Extract speech part after delimiter
+                _, speech_start = self.split_at_delimiter(full_text)
                 if speech_start:
                     self.current_speech = [speech_start]
                 
@@ -260,8 +271,8 @@ class ParliamentProcessor:
         df.to_csv(output_file, index=False, encoding='utf-8')
 
 def main():
-    processor = ParliamentProcessor()
-    processor.process_file('17-III-07.02.2020.txt')
+    processor = ParliamentProcessor(delimiters={';', ':'})  
+    processor.process_file('16-III-01.12.2014.txt')
 
 if __name__ == "__main__":
     main()
