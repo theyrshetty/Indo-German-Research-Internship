@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from collections import defaultdict
 import pandas as pd
 from Levenshtein import distance
+from spellchecker import SpellChecker
+
 
 # Set up logging
 logging.basicConfig(
@@ -63,7 +65,8 @@ class DictionaryLoader:
 class TextAnalyzer:
     """Handles text analysis and error detection"""
     def __init__(self, english_dict: Set[str], hindi_dict: Set[str]):
-        self.english_dict = english_dict
+        self.english_spellchecker = SpellChecker()
+        self.english_dict = set(self.english_spellchecker.word_frequency.words)
         self.hindi_dict = hindi_dict
         # Different thresholds for English and Hindi
         self.english_threshold = 2
@@ -224,8 +227,18 @@ class TextAnalyzer:
             return False, None, 0.0, []
             
         # If the word is already in the dictionary, it's correct
-        if word in dictionary:
-            return False, None, 0.0, []
+        if dictionary == self.english_dict:
+            if word in self.english_spellchecker:
+                return False, None, 0.0, []
+            else:
+                suggestions = list(self.english_spellchecker.candidates(word))
+                suggestions = sorted(suggestions, key=lambda s: distance(word, s))
+                suggestions_with_distance = [(s, distance(word, s) / max(len(word), len(s))) for s in suggestions]
+                best = suggestions_with_distance[:3]
+                best_correction = best[0][0] if best else None
+                best_distance = best[0][1] if best else 1.0
+                is_error = best_distance > 0.2  # you can tweak threshold
+                return is_error, best_correction, best_distance, best
         
         # Check for capitalized versions (proper nouns)
         if word.capitalize() in dictionary or word.upper() in dictionary or word.lower() in dictionary:
