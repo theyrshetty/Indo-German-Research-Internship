@@ -66,8 +66,8 @@ class TextAnalyzer:
         self.english_dict = english_dict
         self.hindi_dict = hindi_dict
         # Different thresholds for English and Hindi
-        self.english_threshold = 1
-        self.hindi_threshold = 2.5  # More lenient threshold for Hindi
+        self.english_threshold = 2
+        self.hindi_threshold = 3.5  # More lenient threshold for Hindi
     
     def is_hindi_word(self, word: str) -> bool:
         """Check if a word contains Hindi characters"""
@@ -219,28 +219,46 @@ class TextAnalyzer:
     
     def _check_word_detailed(self, word: str, dictionary: Set[str], threshold: float) -> Tuple[bool, Optional[str], float, List[Tuple[str, float]]]:
         """Check if a word is an error and return detailed correction information"""
+        # Skip very short words
+        if len(word) <= 2:
+            return False, None, 0.0, []
+            
+        # If the word is already in the dictionary, it's correct
         if word in dictionary:
             return False, None, 0.0, []
         
-        # Skip numbers and alphanumeric combinations - they're often correct references
-        if any(c.isdigit() for c in word):
+        # Check for capitalized versions (proper nouns)
+        if word.capitalize() in dictionary or word.upper() in dictionary or word.lower() in dictionary:
+            return False, None, 0.0, []
+        
+        # Skip numbers, alphanumeric combinations, and words with special characters
+        if any(c.isdigit() for c in word) or not word.isalpha():
             return False, None, 0.0, []
         
         # Find best corrections
         corrections = self.find_best_corrections(word, dictionary)
         
         if not corrections:
-            return True, None, 1.0, []
+            # If no corrections found, mark as correct for now
+            # This addresses cases where the dictionary is incomplete
+            return False, None, 1.0, []
         
         best_correction, best_distance = corrections[0]
         
-        # Determine threshold based on language and word length
-        if dictionary == self.hindi_dict:
-            # More lenient for Hindi
-            adaptive_threshold = min(0.5, threshold / 10)
+        # Use more lenient thresholds based on word length
+        word_len = len(word)
+        if word_len <= 4:
+            # Be more lenient with short words
+            adaptive_threshold = threshold * 0.7
+        elif word_len <= 6:
+            adaptive_threshold = threshold * 0.5
         else:
-            # Stricter for English
-            adaptive_threshold = min(threshold / max(len(word), 1), 0.4)
+            adaptive_threshold = threshold * 0.4
+        
+        # Apply different thresholds based on language
+        if dictionary == self.hindi_dict:
+            # Even more lenient for Hindi
+            adaptive_threshold = min(0.8, adaptive_threshold * 1.5)
         
         if best_distance <= adaptive_threshold:
             return False, None, best_distance, corrections
