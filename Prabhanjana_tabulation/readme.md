@@ -41,6 +41,54 @@ Python script to convert processed text into structured CSV data.
 - Processes speeches with appropriate attribution
 - Exports structured data to CSV with page, metadata, speaker, and speech columns
 
+# Parliament Document Processing System
+
+## name_sourcing.py 
+
+Python script to match MP names from official lists with speaker names in parliamentary speech data.
+
+### Functions:
+* `normalize_name()`: Standardizes name formatting by converting to lowercase, removing punctuation, and extra spaces
+* `is_speaker_chair()`: Identifies if a speaker name refers to the Speaker/Chair of the House
+* `is_chair_chair()`: Identifies if a speaker name refers to the Chairperson
+* `normalize_hindi_name()`: Creates both standard and no-space versions of Hindi names
+* `check_name_words_match()`: Compares speaker name with MP name through word-by-word matching
+* `calculate_string_similarity()`: Calculates string similarity as a backup metric
+* `find_top_matches()`: Identifies top 2 matching MP names for each speaker
+* `match_mp_names()`: Main function to process and match names across datasets
+
+### Features:
+* Name normalization - Converts text to lowercase, removes punctuation and excess spaces, with special handling for Hindi names to account for space variations.
+
+* Multi-strategy name matching - Employs word-by-word matching, sequential word matching with score boosts, and string similarity calculations for more accurate results.
+
+* Hindi name recognition - Handles combined word forms, substring matching for names with prefixes, and calculates match quality based on proportion of matching characters.
+
+* Parliamentary role handling - Detects and standardizes Speaker/Chair references in both English and Hindi, assigning consistent designations for these roles.
+
+* Score-based ranking - Calculates scores using weighted combinations of word matching and string similarity, returning the top two most likely MP matches.
+
+## name_matching.py 
+
+Python script to determine the correct MP name match from multiple preferences based on contextual analysis.
+
+### Functions:
+* `process_csv()`: Main function to process matched names and determine correct speaker
+* `is_hindi()`: Detects if text contains Hindi language
+* `get_alternating_pattern()`: Identifies A-B-A-B dialogue patterns
+
+### Features:
+* Context-aware name resolution - Identifies top 4 most occurring names and applies special handling for single-occurrence names that might represent errors.
+
+* Decision logic - Employs three specialized logical paths to determine the most probable correct speaker:
+  * Path 1: Single-occurrence resolution - Selects preference 2 when a name appears once in preference 1 but preference 2 contains a frequent name.
+  * Path 2: Hindi speaker analysis - When original text is Hindi, checks if preference 2 name is prominent and frequently appears in English text rows; if both true, selects preference 2, otherwise uses preference 1.
+  * Path 3: Pattern-based correction - Selects preference 2 if it maintains an established dialogue pattern that preference 1 would break.
+
+* Dialogue pattern recognition - Analyzes speaker sequences to identify A-B-A-B patterns, tracking position to predict the next expected speaker.
+
+* Comprehensive fallbacks - Implements cascading fallbacks from preferred matching to alternatives, ensuring no records have empty speaker fields.
+
 ## Required Python Packages
 ```
 pytesseract==0.3.10
