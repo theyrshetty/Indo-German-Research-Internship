@@ -41,8 +41,6 @@ Python script to convert processed text into structured CSV data.
 - Processes speeches with appropriate attribution
 - Exports structured data to CSV with page, metadata, speaker, and speech columns
 
-# Parliament Document Processing System
-
 ## name_sourcing.py 
 
 Python script to match MP names from official lists with speaker names in parliamentary speech data.
